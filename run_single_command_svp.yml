@@ -7,10 +7,26 @@
     silverpeak_api_url: "https://silverpeak-device-api-endpoint"  # Replace with actual API endpoint
     silverpeak_username: "your_username"  # Replace with your username
     silverpeak_password: "your_password"  # Replace with your password
-    device_id: "specific_device_id"       # Replace with the specific device ID
-    new_mgmt_ip: "192.xx.xx.xx"           # Replace with the desired management IP
+    device_identifier: "unique_device_identifier"  # Replace with a unique identifier for your device
+    new_mgmt_ip: "192.xx.xx.xx"  # Replace with the desired management IP
 
   tasks:
+    - name: Retrieve Silver Peak device ID
+      uri:
+        url: "{{ silverpeak_api_url }}/devices-list-endpoint"  # Replace with the actual endpoint to list devices
+        method: GET
+        user: "{{ silverpeak_username }}"
+        password: "{{ silverpeak_password }}"
+        force_basic_auth: yes
+        return_content: yes
+        validate_certs: no  # Set to yes in production for SSL verification
+      register: devices_response
+
+    - name: Extract device ID
+      set_fact:
+        device_id: "{{ (devices_response.json.devices | selectattr('identifier_attribute', 'equalto', device_identifier) | first).id }}"
+      when: devices_response.json is defined and 'devices' in devices_response.json
+
     - name: Set management IP on the Silver Peak device
       uri:
         url: "{{ silverpeak_api_url }}/endpoint-for-setting-ip/{{ device_id }}"  # Update with correct endpoint
