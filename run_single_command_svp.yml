@@ -1,0 +1,32 @@
+---
+- name: Configure Management IP on a Silver Peak Device
+  hosts: localhost
+  gather_facts: no
+
+  vars:
+    silverpeak_api_url: "https://silverpeak-device-api-endpoint"  # Replace with actual API endpoint
+    silverpeak_username: "your_username"  # Replace with your username
+    silverpeak_password: "your_password"  # Replace with your password
+    device_id: "specific_device_id"       # Replace with the specific device ID
+    new_mgmt_ip: "192.xx.xx.xx"           # Replace with the desired management IP
+
+  tasks:
+    - name: Set management IP on the Silver Peak device
+      uri:
+        url: "{{ silverpeak_api_url }}/endpoint-for-setting-ip/{{ device_id }}"  # Update with correct endpoint
+        method: POST  # This might be POST or PUT, depending on the API
+        body_format: json
+        body: 
+          ip_mgmt_ip: "{{ new_mgmt_ip }}"
+        headers:
+          Content-Type: "application/json"
+        user: "{{ silverpeak_username }}"
+        password: "{{ silverpeak_password }}"
+        force_basic_auth: yes
+        status_code: 200,201  # Expected successful status code(s)
+        validate_certs: no  # Set to yes in production for SSL verification
+      register: response
+
+    - name: Check response
+      debug:
+        var: response
